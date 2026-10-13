@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiPath - Accessible Campus Alerts & Indoor Wayfinding</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --primary: #58a6ff;
+      --primary-hover: #1f6feb;
+      --danger: #f85149;
+      --danger-hover: #da3633;
+      --warning: #f1e05a;
+      --accent: #238636;
+      --focus-ring: #f3e034;
+      --font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-stack);
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 1.5rem 1rem 3rem 1rem;
+      min-height: 100vh;
+    }
+
+    /* Accessibility Focus Styles */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 4px solid var(--focus-ring) !important;
+      outline-offset: 3px !important;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .layout-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .span-full {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 0.85rem 1.25rem;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+      color: #ffffff;
+      min-height: 48px; /* Large accessible touch target */
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      border-color: #ff7b72;
+    }
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #0d1117;
+      border-color: #79c0ff;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: #21262d;
+      color: var(--text-main);
+      border: 2px solid var(--card-border);
+    }
+    .btn-secondary:hover {
+      background-color: #30363d;
+    }
+
+    .btn-checkpoint {
+      background-color: #21262d;
+      color: var(--text-main);
+      border: 2px solid var(--card-border);
+      padding: 0.6rem 0.9rem;
+      font-size: 1rem;
+    }
+    .btn-checkpoint.active {
+      background-color: var(--primary);
+      color: #040d21;
+      border-color: #ffffff;
+      font-weight: 800;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    input[type="text"],
+    select {
+      background-color: #0d1117;
+      border: 2px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 1.1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    /* Wayfinding Grid */
+    .checkpoint-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .wayfinding-status {
+      background-color: #0d1117;
+      border: 2px dashed var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      font-weight: 700;
+      color: var(--primary);
+      background-color: rgba(88, 166, 255, 0.15);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+    }
+
+    .direction-box {
+      background-color: #1f2937;
+      border-left: 6px solid var(--primary);
+      border-radius: 4px;
+      padding: 1rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffffff;
+      min-height: 4rem;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Dashboard & Metrics */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .stat-card {
+      background-color: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .log-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      background-color: #0d1117;
+      border: 1px solid var(--card-border);
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .log-tag {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .log-tag.fire { background-color: var(--danger); color: #ffffff; }
+    .log-tag.pa { background-color: var(--primary); color: #000000; }
+
+    /* Accessibility Live Overlay Flash */
+    #alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      z-index: 9999;
+      text-align: center;
+    }
+
+    #alert-overlay.flash-fire {
+      background-color: #b30000;
+      animation: strobe-fire 0.7s infinite alternate;
+      color: #ffffff;
+    }
+
+    #alert-overlay.flash-pa {
+      background-color: #004085;
+      animation: strobe-pa 0.9s infinite alternate;
+      color: #ffffff;
+    }
+
+    @keyframes strobe-fire {
+      0% { background-color: #d8000c; }
+      100% { background-color: #ff4d4d; }
+    }
+
+    @keyframes strobe-pa {
+      0% { background-color: #0b3d91; }
+      100% { background-color: #4da6ff; }
+    }
+
+    .overlay-title {
+      font-size: 3rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 1.5rem;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .overlay-message {
+      font-size: 2.2rem;
+      font-weight: 800;
+      max-width: 800px;
+      line-height: 1.4;
+      background: rgba(0, 0, 0, 0.75);
+      border: 4px solid #ffffff;
+      padding: 1.5rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+    }
+
+    .overlay-dismiss-btn {
+      margin-top: 2rem;
+      padding: 1rem 2.5rem;
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: #ffffff;
+      color: #000000;
+      border: 4px solid #000000;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* Screen reader only utility class */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen reader live region for immediate critical announcements -->
+  <div id="sr-announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <div class="container">
+    <header role="banner">
+      <h1>
+        <span aria-hidden="true">💡🔔</span> LumiPath
+      </h1>
+      <p class="subtitle">She the sound. Hear the way.</p>
+    </header>
+
+    <main class="layout-grid">
+      <!-- Section 1: Core: Accessible Alerts -->
+      <section class="card" aria-labelledby="section-alerts-title">
+        <h2 id="section-alerts-title" class="card-title">
+          <span aria-hidden="true">🚨</span> Core: Accessible Alerts
+        </h2>
+        <p id="alerts-desc" style="color: var(--text-muted); font-size: 1rem;">
+          Converts audible building alarms & speeches into high-contrast flashing visuals, vibration patterns, and spoken screen notifications.
+        </p>
+
+        <div class="form-group">
+          <label for="pa-text-input">Custom Public Announcement (PA) Message:</label>
+          <input
+            type="text"
+            id="pa-text-input"
+            value="Class moved to Room 304"
+            aria-describedby="alerts-desc"
+          />
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <button
+            type="button"
+            id="btn-fire"
+            class="btn btn-danger"
+            aria-label="Simulate Fire Alarm Alert"
+          >
+            <span aria-hidden="true">🔥</span> Simulate Fire Alarm
+          </button>
+          <button
+            type="button"
+            id="btn-pa"
+            class="btn btn-primary"
+            aria-label="Simulate Public Announcement Alert"
+          >
+            <span aria-hidden="true">📢</span> Simulate PA Announcement
+          </button>
+        </div>
+      </section>
+
+      <!-- Section 2: Extension: Indoor Wayfinding -->
+      <section class="card" aria-labelledby="section-wayfinding-title">
+        <h2 id="section-wayfinding-title" class="card-title">
+          <span aria-hidden="true">🧭</span> Extension: Indoor Wayfinding
+        </h2>
+        <p style="color: var(--text-muted); font-size: 1rem;">
+          Non-visual wayfinding assistance using vibration cadences and synthetic voice directions between campus landmarks.
+        </p>
+
+        <div>
+          <label id="checkpoint-label">1. Current Checkpoint (Select Location):</label>
+          <div
+            class="checkpoint-grid"
+            role="group"
+            aria-labelledby="checkpoint-label"
+            id="checkpoint-container"
+            style="margin-top: 0.5rem;"
+          >
+            <button type="button" class="btn btn-checkpoint active" data-point="Entrance" aria-pressed="true">Entrance</button>
+            <button type="button" class="btn btn-checkpoint" data-point="Stairs" aria-pressed="false">Stairs</button>
+            <button type="button" class="btn btn-checkpoint" data-point="Library" aria-pressed="false">Library</button>
+            <button type="button" class="btn btn-checkpoint" data-point="Room 304" aria-pressed="false">Room 304</button>
+            <button type="button" class="btn btn-checkpoint" data-point="Lab" aria-pressed="false">Lab</button>
+            <button type="button" class="btn btn-checkpoint" data-point="Exit" aria-pressed="false">Exit</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="destination-select">2. Select Destination Checkpoint:</label>
+          <select id="destination-select" aria-label="Select destination location">
+            <option value="Entrance">Entrance</option>
+            <option value="Stairs">Stairs</option>
+            <option value="Library">Library</option>
+            <option value="Room 304" selected>Room 304</option>
+            <option value="Lab">Lab</option>
+            <option value="Exit">Exit</option>
+          </select>
+        </div>
+
+        <div class="wayfinding-status" aria-live="polite">
+          <p style="margin-bottom: 0.5rem; font-size: 1.05rem;">
+            <span class="status-badge" id="badge-current">FROM: Entrance</span>
+            <span class="status-badge" id="badge-dest">TO: Room 304</span>
+          </p>
+          <div id="direction-output" class="direction-box">
+            Turn straight down the main hall for 20 m. Stairs are ahead.
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button
+            type="button"
+            id="btn-speak-dir"
+            class="btn btn-secondary"
+            style="flex: 1;"
+            aria-label="Speak direction guidance aloud"
+          >
+            <span aria-hidden="true">🔊</span> Speak Direction
+          </button>
+          <button
+            type="button"
+            id="btn-vibrate-dir"
+            class="btn btn-secondary"
+            style="flex: 1;"
+            aria-label="Trigger tactical haptic guidance vibration"
+          >
+            <span aria-hidden="true">📳</span> Vibrate
+          </button>
+        </div>
+      </section>
+
+      <!-- Section 3: Metrics Dashboard -->
+      <section class="card span-full" aria-labelledby="section-metrics-title">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
+          <h2 id="section-metrics-title" class="card-title" style="border-bottom: none; padding-bottom: 0;">
+            <span aria-hidden="true">📊</span> Metrics & Performance Dashboard
+          </h2>
+          <button
+            type="button"
+            id="btn-reset-metrics"
+            class="btn btn-secondary"
+            style="padding: 0.4rem 0.8rem; font-size: 0.9rem; min-height: 38px;"
+            aria-label="Reset in-memory performance metrics"
+          >
+            Reset Metrics
+          </button>
+        </div>
+
+        <div class="stats-row" role="region" aria-label="Alert Performance Statistics">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Total Alerts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-avg-latency">0 ms</div>
+            <div class="stat-label">Average Latency</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-last-latency">0 ms</div>
+            <div class="stat-label">Last Latency</div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-muted);">
+            Last 5 Triggered Alerts (Auditing Log)
+          </h3>
+          <ul id="alert-logs" class="log-list" aria-label="Recent alert events">
+            <li class="log-item" style="color: var(--text-muted); font-style: italic;">
+              No alerts triggered in this session yet.
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Full-screen Visual Flashing Alert Overlay for Deaf/Hard-of-Hearing Users -->
+  <aside
+    id="alert-overlay"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="overlay-title"
+    aria-describedby="overlay-desc"
+  >
+    <div id="overlay-title" class="overlay-title">ALERT</div>
+    <div id="overlay-desc" class="overlay-message">Warning Message</div>
+    <button type="button" id="btn-dismiss-overlay" class="overlay-dismiss-btn" aria-label="Dismiss full screen alert">
+      Acknowledge & Dismiss [ESC]
+    </button>
+  </aside>
+
+  <script>
+    /**
+     * LumiPath Application State & Metrics
+     */
+    const state = {
+      currentCheckpoint: 'Entrance',
+      destination: 'Room 304',
+      totalAlerts: 0,
+      latencies: [],
+      alertHistory: []
+    };
+
+    /**
+     * Hard-Coded Campus Route Graph Instructions
+     */
+    const routeGraph = {
+      'Entrance': {
+        'Entrance': 'You are currently at the Entrance.',
+        'Stairs': 'Walk straight forward 20 meters. Stairs will be immediately ahead.',
+        'Library': 'Turn left from the foyer and walk 15 meters. Library double doors are on your left.',
+        'Room 304': 'Walk straight past the Stairs for 30 meters, then turn right. Room 304 is on your left.',
+        'Lab': 'Take the main corridor right for 25 meters. Lab entrance is on your right side.',
+        'Exit': 'Exit doors are immediately behind you.'
+      },
+      'Stairs': {
+        'Entrance': 'Head south down the main lobby corridor for 20 meters to reach the Entrance.',
+        'Stairs': 'You are currently at the Stairs.',
+        'Library': 'Turn sharp right at base of stairs and follow the tactile guide for 10 meters to the Library.',
+        'Room 304': 'Turn right in 10 m. Room 304 on your left.',
+        'Lab': 'Go past the elevator corridor on the right for 18 meters to reach the Lab.',
+        'Exit': 'Follow direct path toward emergency illuminated signage 15 meters to the Exit.'
+      },
+      'Library': {
+        'Entrance': 'Exit the library doors, turn right, and walk 15 meters to the main Entrance.',
+        'Stairs': 'Walk straight ahead 10 meters toward the central staircase.',
+        'Library': 'You are currently at the Library.',
+        'Room 304': 'Walk past the front counter, take the elevator corridor north for 25 meters to Room 304.',
+        'Lab': 'Walk across the atrium 30 meters directly east into the Science Lab.',
+        'Exit': 'Follow the west wall corridor 20 meters directly to the exterior Exit.'
+      },
+      'Room 304': {
+        'Entrance': 'Turn right outside the door, proceed 35 meters straight down the hall to the main Entrance.',
+        'Stairs': 'Turn right, proceed 10 meters straight. The Stairwell is directly in front of you.',
+        'Library': 'Turn left, proceed 25 meters down the corridor to the Library double doors.',
+        'Room 304': 'You are currently at Room 304.',
+        'Lab': 'Walk straight across the cross-corridor 12 meters into the Lab.',
+        'Exit': 'Turn left and follow tactile indicators 20 meters to the north Emergency Exit.'
+      },
+      'Lab': {
+        'Entrance': 'Turn left outside the lab door and proceed 25 meters to the Entrance.',
+        'Stairs': 'Head northwest 18 meters to reach the main Stairwell.',
+        'Library': 'Walk across the atrium 30 meters west toward the Library.',
+        'Room 304': 'Walk 12 meters across the cross-corridor to reach Room 304.',
+        'Lab': 'You are currently at the Lab.',
+        'Exit': 'Emergency exit is 8 meters to your immediate left.'
+      },
+      'Exit': {
+        'Entrance': 'Re-enter through exterior security vestibule 10 meters to main Entrance.',
+        'Stairs': 'Re-enter hallway, walk 15 meters straight toward the central Stairwell.',
+        'Library': 'Walk 20 meters down the west corridor to reach the Library.',
+        'Room 304': 'Enter north hallway and proceed 20 meters to Room 304.',
+        'Lab': 'Turn right inside hallway and walk 8 meters to the Lab.',
+        'Exit': 'You are already at the Campus Exit.'
+      }
+    };
+
+    // DOM Elements
+    const btnFire = document.getElementById('btn-fire');
+    const btnPa = document.getElementById('btn-pa');
+    const paInput = document.getElementById('pa-text-input');
+    const alertOverlay = document.getElementById('alert-overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    const btnDismissOverlay = document.getElementById('btn-dismiss-overlay');
+    const srAnnouncer = document.getElementById('sr-announcer');
+
+    const checkpointButtons = document.querySelectorAll('.btn-checkpoint');
+    const destinationSelect = document.getElementById('destination-select');
+    const badgeCurrent = document.getElementById('badge-current');
+    const badgeDest = document.getElementById('badge-dest');
+    const directionOutput = document.getElementById('direction-output');
+    const btnSpeakDir = document.getElementById('btn-speak-dir');
+    const btnVibrateDir = document.getElementById('btn-vibrate-dir');
+
+    const statTotal = document.getElementById('stat-total');
+    const statAvgLatency = document.getElementById('stat-avg-latency');
+    const statLastLatency = document.getElementById('stat-last-latency');
+    const alertLogs = document.getElementById('alert-logs');
+    const btnResetMetrics = document.getElementById('btn-reset-metrics');
+
+    /**
+     * Speech Synthesis Helper (Blind / Low-Vision)
+     */
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop any pending speech
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+      // Also announce to screen reader live region
+      srAnnouncer.textContent = text;
+    }
+
+    /**
+     * Vibration Helper (Deaf-Blind / Tactile feedback)
+     */
+    function triggerVibration(pattern) {
+      if ('vibrate' in navigator) {
+        try {
+          navigator.vibrate(pattern);
+        } catch (e) {
+          // Vibration not supported or allowed in environment
+        }
+      }
+    }
+
+    /**
+     * Trigger Visual & Haptic & Audio Alerts
+     */
+    function triggerAlert(type, message) {
+      const startTime = performance.now();
+
+      // Configure Overlay details
+      if (type === 'fire') {
+        overlayTitle.innerHTML = '🔥 FIRE ALARM DETECTED';
+        overlayDesc.textContent = 'EVACUATE IMMEDIATELY. PROCEED TO NEAREST EMERGENCY EXIT.';
+        alertOverlay.className = 'flash-fire';
+        // Emergency vibration pattern: urgent repeated buzzes
+        triggerVibration([500, 200, 500, 200, 500, 200, 800]);
+        speakText('Emergency Fire Alarm! Evacuate immediately. Proceed to the nearest exit.');
+      } else {
+        overlayTitle.innerHTML = '📢 CAMPUS ANNOUNCEMENT';
+        overlayDesc.textContent = message;
+        alertOverlay.className = 'flash-pa';
+        // Notice vibration pattern: 2 gentle pulses
+        triggerVibration([250, 150, 250]);
+        speakText('Public Announcement: ' + message);
+      }
+
+      // Display Full Screen Visual Alert Overlay
+      alertOverlay.style.display = 'flex';
+      btnDismissOverlay.focus();
+
+      // Compute Latency in Milliseconds
+      const endTime = performance.now();
+      const latency = Math.max(1, Math.round(endTime - startTime));
+
+      // Record & update Metrics
+      recordAlertMetric(type, message, latency);
+    }
+
+    /**
+     * Dismiss Overlay
+     */
+    function dismissAlert() {
+      alertOverlay.style.display = 'none';
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if ('vibrate' in navigator) {
+        navigator.vibrate(0);
+      }
+    }
+
+    btnDismissOverlay.addEventListener('click', dismissAlert);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && alertOverlay.style.display === 'flex') {
+        dismissAlert();
+      }
+    });
+
+    /**
+     * Metric & Logging System (In-Memory)
+     */
+    function recordAlertMetric(type, message, latency) {
+      state.totalAlerts += 1;
+      state.latencies.push(latency);
+      state.alertHistory.unshift({
+        type: type,
+        message: message,
+        latency: latency,
+        time: new Date().toLocaleTimeString()
+      });
+
+      if (state.alertHistory.length > 5) {
+        state.alertHistory.pop();
+      }
+
+      updateMetricsDashboard();
+    }
+
+    function updateMetricsDashboard() {
+      const sum = state.latencies.reduce((a, b) => a + b, 0);
+      const avg = state.latencies.length ? Math.round(sum / state.latencies.length) : 0;
+      const last = state.latencies.length ? state.latencies[state.latencies.length - 1] : 0;
+
+      statTotal.textContent = state.totalAlerts;
+      statAvgLatency.textContent = avg + ' ms';
+      statLastLatency.textContent = last + ' ms';
+
+      // Render Last 5 Alerts Log
+      if (state.alertHistory.length === 0) {
+        alertLogs.innerHTML = `
+          <li class="log-item" style="color: var(--text-muted); font-style: italic;">
+            No alerts triggered in this session yet.
+          </li>`;
+        return;
+      }
+
+      alertLogs.innerHTML = '';
+      state.alertHistory.forEach(log => {
+        const item = document.createElement('li');
+        item.className = 'log-item';
+        const tagClass = log.type === 'fire' ? 'fire' : 'pa';
+        const tagText = log.type === 'fire' ? 'FIRE' : 'PA';
+
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span class="log-tag ${tagClass}">${tagText}</span>
+            <span style="font-weight: 600; color: #fff;">${escapeHtml(log.message)}</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-muted); text-align: right; min-width: 100px;">
+            <span>${log.latency} ms</span> · <span>${log.time}</span>
+          </div>
+        `;
+        alertLogs.appendChild(item);
+      });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function resetMetrics() {
+      state.totalAlerts = 0;
+      state.latencies = [];
+      state.alertHistory = [];
+      updateMetricsDashboard();
+      speakText('Alert metrics have been reset.');
+    }
+
+    btnResetMetrics.addEventListener('click', resetMetrics);
+
+    // Alert simulation triggers
+    btnFire.addEventListener('click', () => {
+      triggerAlert('fire', 'FIRE ALARM EVACUATION');
+    });
+
+    btnPa.addEventListener('click', () => {
+      const customMessage = paInput.value.trim() || 'Class moved to Room 304';
+      triggerAlert('pa', customMessage);
+    });
+
+    /**
+     * Wayfinding Logic & Graph Routing
+     */
+    function updateWayfinding() {
+      badgeCurrent.textContent = 'FROM: ' + state.currentCheckpoint;
+      badgeDest.textContent = 'TO: ' + state.destination;
+
+      let directionText = '';
+      if (routeGraph[state.currentCheckpoint] && routeGraph[state.currentCheckpoint][state.destination]) {
+        directionText = routeGraph[state.currentCheckpoint][state.destination];
+      } else {
+        directionText = `Navigate toward ${state.destination} following standard hallway tactile indicators.`;
+      }
+
+      directionOutput.textContent = directionText;
+      return directionText;
+    }
+
+    // Checkpoint button selection
+    checkpointButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        checkpointButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        state.currentCheckpoint = btn.getAttribute('data-point');
+        updateWayfinding();
+      });
+    });
+
+    // Destination dropdown change
+    destinationSelect.addEventListener('change', (e) => {
+      state.destination = e.target.value;
+      updateWayfinding();
+    });
+
+    // Speak direction button
+    btnSpeakDir.addEventListener('click', () => {
+      const instruction = updateWayfinding();
+      speakText(`From ${state.currentCheckpoint} to ${state.destination}: ${instruction}`);
+    });
+
+    // Vibrate direction guidance button (Haptic cues for turns and distance)
+    btnVibrateDir.addEventListener('click', () => {
+      const instruction = directionOutput.textContent.toLowerCase();
+      // Provide distinctive haptic feedback based on turning direction
+      if (instruction.includes('right')) {
+        // Two short pulses indicating right
+        triggerVibration([120, 100, 350]);
+        speakText('Tactile vibration: Right turn');
+      } else if (instruction.includes('left')) {
+        // Two long pulses indicating left
+        triggerVibration([350, 100, 120]);
+        speakText('Tactile vibration: Left turn');
+      } else {
+        // Single continuous pulse for straight ahead / arrived
+        triggerVibration([400]);
+        speakText('Tactile vibration: Proceed straight');
+      }
+    });
+
+    // Initialize state on page load
+    updateWayfinding();
+    updateMetricsDashboard();
+  </script>
+</body>
+</html>
